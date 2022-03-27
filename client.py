@@ -26,7 +26,7 @@ def main():
                     server.shutdown(socket.SHUT_RDWR)
                     server.close()
                     break
-                print(f"Server sends: {data_receive}")
+                print(f"{data_receive}")
             except:
                 break
 

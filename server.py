@@ -12,17 +12,17 @@ def broadcast(message):
         client.send(message.encode(FORMAT))
 
 def client_login(client_socket):
-        client_socket.send("Welcome to the server. Please enter a username:".encode(FORMAT))
+        client_socket.send("[SERVER]: Welcome to the server. Please enter a username:".encode(FORMAT))
 
         while True:
             username = client_socket.recv(SIZE).decode(FORMAT)
-            if username not in client_list:
+            if username not in client_list.keys():
                 client_list[username] = client_socket
                 print(f"Username: {username} \nAddress: {client_socket.getpeername()[0]}")
                 print(f"{client_list}")
                 break
             else:
-                client_socket.send("Username is already taken, please enter another name:".encode(FORMAT))
+                client_socket.send("[SERVER]: Username is already taken, please enter another name:".encode(FORMAT))
         return username
 
 def client_logoff(username, client_socket):
@@ -32,28 +32,50 @@ def client_logoff(username, client_socket):
         except:
             print("Error while trying to log off the client!")
 
+def direct_message(username, other_username, message):
+    if other_username in client_list.keys():
+        other_client_socket = client_list[other_username]
+        other_client_socket.send(f"{username} sends: {message}".encode(FORMAT))
+
+
 def handle_client(client_socket, client_addr):
         print(f"{client_list}")
         username = client_login(client_socket)
-        print(f"{username} connected with {client_socket.getpeername()[0]}!")
+        print(f"[{username}] connected with {client_socket.getpeername()[0]}!")
 
         while True:
             data_received = client_socket.recv(SIZE).decode(FORMAT)
-            print(f"{username} sends: {data_received}")
+            print(f"[{username}] sends: {data_received}")
 
             if len(data_received) == 0:
-                client_socket.send("Exit request received, closing connection...".encode(FORMAT))
+                client_socket.send("[SERVER]: Exit request received, closing connection...".encode(FORMAT))
                 client_logoff(username, client_socket)
+                broadcast(f"[SERVER]: {username} has just left the server!")
                 print(f"{client_list}")
                 break
+            
             elif data_received == "/quit":
-                broadcast(f"{username} has just left the server!")
-                client_socket.send("Exit request received, closing connection...".encode(FORMAT))
+                broadcast(f"[SERVER]: {username} has just left the server!")
+                client_socket.send("[SERVER]: Exit request received, closing connection...".encode(FORMAT))
                 client_logoff(username, client_socket)
                 print(f"{client_list}")
                 break
+
+            # TODO: Users are not always getting listed always in the same order. Handle /who better.
+            # TODO: Add option to search someone specifically : /who murat
             elif data_received == "/who":
-                client_socket.send(f"{client_list.keys()}".encode(FORMAT))
+                client_socket.send(f"[SERVER]: online users:".encode(FORMAT))
+                key_id = 1
+                for key in client_list.keys():
+                    client_socket.send(f"{key_id}) {key}".encode(FORMAT))
+                    key_id += 1
+
+            elif data_received.startswith("/send"):
+                data_split = data_received.split(" ")
+                other_username = data_split[1]
+                message = data_split[2:]
+                direct_message(username, other_username, ' '.join(message))
+            
             else:
                 continue
 
@@ -85,5 +107,6 @@ if __name__ == '__main__':
     main()
 
 
-# TODO: Clean up the names show up in /who broadcast message
-# TODO: Add more commands
+# TODO: Add more commands = /send
+# TODO: Feature to create chat groups between clients
+# TODO: Add more details about the users: online, online since XX:XX, location
