@@ -13,9 +13,9 @@ def broadcast(message):
 
 def client_login(client_socket):
         client_socket.send("[SERVER]: Welcome to the server. Please enter a username:".encode(FORMAT))
-
         while True:
             username = client_socket.recv(SIZE).decode(FORMAT)
+            # TODO: add more filteration while picking a unique username (char limit, allowed special chars etc.)
             if username not in client_list.keys():
                 client_list[username] = client_socket
                 print(f"Username: {username} \nAddress: {client_socket.getpeername()[0]}")
@@ -37,7 +37,6 @@ def direct_message(username, other_username, message):
         other_client_socket = client_list[other_username]
         other_client_socket.send(f"{username} sends: {message}".encode(FORMAT))
 
-
 def handle_client(client_socket, client_addr):
         print(f"{client_list}")
         username = client_login(client_socket)
@@ -45,7 +44,7 @@ def handle_client(client_socket, client_addr):
 
         while True:
             data_received = client_socket.recv(SIZE).decode(FORMAT)
-            print(f"[{username}] sends: {data_received}")
+            print(f"[{username}]: {data_received}")
 
             if len(data_received) == 0:
                 client_socket.send("[SERVER]: Exit request received, closing connection...".encode(FORMAT))
@@ -107,6 +106,11 @@ if __name__ == '__main__':
     main()
 
 
-# TODO: Add more commands = /send
-# TODO: Feature to create chat groups between clients
+# TODO: Add more commands for clients to use
+# TODO: Remove command log/history from the chat window after done
+# TODO: Add timestamps on messages
 # TODO: Add more details about the users: online, online since XX:XX, location
+# TODO: Add option to save the chat history locally
+# TODO: Feature to create chat groups between clients
+# TODO: Add option to file transfer
+
