@@ -35,29 +35,25 @@ def client_logoff(username, client_socket):
 def direct_message(username, other_username, message):
     if other_username in client_list.keys():
         other_client_socket = client_list[other_username]
-        other_client_socket.send(f"{username} sends: {message}".encode(FORMAT))
+        other_client_socket.send(f"[{username}] sends: {message}".encode(FORMAT))
 
 def handle_client(client_socket, client_addr):
-        print(f"{client_list}")
         username = client_login(client_socket)
         print(f"[{username}] connected with {client_socket.getpeername()[0]}!")
 
         while True:
             data_received = client_socket.recv(SIZE).decode(FORMAT)
-            print(f"[{username}]: {data_received}")
 
             if len(data_received) == 0:
                 client_socket.send("[SERVER]: Exit request received, closing connection...".encode(FORMAT))
                 client_logoff(username, client_socket)
-                broadcast(f"[SERVER]: {username} has just left the server!")
-                print(f"{client_list}")
+                broadcast(f"[SERVER]: [{username}] has just left the server!")
                 break
             
             elif data_received == "/quit":
-                broadcast(f"[SERVER]: {username} has just left the server!")
+                broadcast(f"[SERVER]: [{username}] has just left the server!")
                 client_socket.send("[SERVER]: Exit request received, closing connection...".encode(FORMAT))
                 client_logoff(username, client_socket)
-                print(f"{client_list}")
                 break
 
             # TODO: Users are not always getting listed always in the same order. Handle /who better.
@@ -73,8 +69,13 @@ def handle_client(client_socket, client_addr):
                 data_split = data_received.split(" ")
                 other_username = data_split[1]
                 message = data_split[2:]
-                direct_message(username, other_username, ' '.join(message))
-            
+                if other_username == "server":
+                    print(f"[{username}]: {' '.join(message)}")
+                elif other_username not in client_list.keys():
+                    client_socket.send("[SERVER]: User is not online or does not exist!".encode(FORMAT))
+                else:
+                    direct_message(username, other_username, ' '.join(message))
+                                
             else:
                 continue
 

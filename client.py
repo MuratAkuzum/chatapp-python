@@ -12,7 +12,7 @@ def main():
     def send():
         while True:
             try:
-                data = input("> ")
+                data = input("")
                 server.send(data.encode(FORMAT))
             except KeyboardInterrupt:
                 server.close()
