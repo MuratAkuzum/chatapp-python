@@ -8,11 +8,41 @@ FORMAT = 'utf-8'
 client_list = {}
 
 class Channel:
-    def __init__(self):
-        self.name: str
-        self.members: list[str]
+    def __init__(self, channel_name: str):
+        self.channel_name: str
         self.owner: str
         self.co_owners: list[str]
+        self.members: list[str]
+        self.public: bool
+
+    def channel_create(channel_name: str):
+        # TODO: Make the channel private by default during creation. 
+        # TODO: Add option to make it public during or after creation:
+        new_channel = Channel(channel_name)
+        new_channel.owner = Client.username
+        # new_channel.members.append(self.username)
+    
+    def channel_join(channel_name: str):
+        if Channel.public:
+            new_channel.members.append(Client.username)
+        else:
+            Client.client_socket.send("[SERVER]: You are not allowed to join a public channel without any invite.".encode(FORMAT))
+
+    def channel_invite(username: str):
+        pass
+
+    def channel_quit(channel_name):
+        pass
+
+    def channel_kick(username: str):
+        pass
+
+    def channel_who(channel_name: str):
+        pass
+
+    def channel_send(channel_name:str, message: str):
+        pass
+
 
 class Client:
     def __init__(self, client_socket, client_addr):
@@ -93,11 +123,10 @@ class Client:
                 channel_command = data_split[2]
                 
                 if channel_command == "create":
-
-                    pass
+                    Channel.channel_create(channel_name)
+                    Client.client_socket.send(f"[SERVER]: Private Channel named {channel_name} has been created!".encode(FORMAT))
                 elif channel_command == "join":
-                    # TODO: find the owner and ask permission to join the channel:
-                    pass
+                    Channel.channel_join(channel_name)
                 elif channel_command == "invite":
                     channel_user = data_split[3]
                     # TODO: invite the user to your channel if exists, if not, create channel if invite is accepted:
