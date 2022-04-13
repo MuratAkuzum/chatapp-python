@@ -6,39 +6,15 @@ SIZE = 1024
 FORMAT = 'utf-8'
 
 client_list = {}
-channel_list = {}
+
 
 class Channel:
-    def __init__(self, channel_name: str):
-        # TODO: Add option to make it public during or after creation:
-        self.channel_name: str 
-        self.owner: str
-        self.co_owners: list[str]
-        self.members: list[str]
-        self.public: bool
-    
-    def channel_join(self, channel_name: str):
-        if Channel.public:
-            new_channel.members.append(self.username)
-            Client.client_socket.send(f"[SERVER]: {Client.username} has entered the channel {channel_name}.".encode(FORMAT))
-        else:
-            Client.client_socket.send("[SERVER]: You are not allowed to join a public channel without any invite.".encode(FORMAT))
-
-    def channel_invite(self, username: str):
-        pass
-
-    def channel_quit(self, channel_name):
-        pass
-
-    def channel_kick(self, username: str):
-        pass
-
-    def channel_who(self, channel_name: str):
-        pass
-
-    def channel_send(self, channel_name:str, message: str):
-        pass
-
+    channel_list = []
+    def __init__(self, channel_name: str, owner: str, public: bool):
+        # TODO: Add option to make it public or private after creation:
+        self.channel_name = channel_name
+        self.owner = owner
+        self.public = public
 
 class Client:
     def __init__(self, client_socket, client_addr):
@@ -123,18 +99,17 @@ class Client:
                     continue
                 
                 if channel_command == "create":
-                    new_channel = Channel(channel_name)
-                    new_channel.channel_name = channel_name
-                    new_channel.owner = self.username
-                    channel_list[new_channel.channel_name] = new_channel.owner
-                    new_channel.public = False
+                    new_channel = Channel(channel_name, self.username, True)
 
-                    print(f"{new_channel.channel_name} {new_channel.owner}")
-                    self.client_socket.send(f"[SERVER]: Private Channel named '{new_channel.channel_name}' has been created!".encode(FORMAT))
+                    channel_list[new_channel.channel_name] = new_channel.owner
+
+                    self.client_socket.send(f"[SERVER]: Private Channel named '{Channel.channel_list[0].channel_name}' has been created!".encode(FORMAT))
 
                 elif channel_command == "join":
-                    Channel.channel_join(channel_name)
-
+                    # TODO: connect the user to the channel if not already a member, if it is public, if not blacklisted, recently kicked
+                    # self.client_socket.send(f"[SERVER]: {self.username} has entered the channel {channel_name.channel_name}.".encode(FORMAT))
+                    # self.client_socket.send(f"[SERVER]: Failed to join the channel '{channel_name.channel_name}! It either doesn't exist or not public.".encode(FORMAT))
+                    pass
                 elif channel_command == "invite":
                     channel_user = data_split[3]
                     # TODO: invite the user to your channel if exists, if not, create channel if invite is accepted:
@@ -207,6 +182,7 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+
 
 # TODO: Add more commands for clients to use
 # TODO: Remove command log/history from the chat window after done
