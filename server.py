@@ -10,13 +10,12 @@ channel_list = {}
 
 class Channel:
     def __init__(self, channel_name: str):
-        # TODO: Make the channel private by default during creation. 
         # TODO: Add option to make it public during or after creation:
         self.channel_name: str 
         self.owner: str
         self.co_owners: list[str]
         self.members: list[str]
-        self.public: bool = True
+        self.public: bool
     
     def channel_join(self, channel_name: str):
         if Channel.public:
@@ -46,8 +45,8 @@ class Client:
         self.username: str = ""
         self.client_socket = client_socket
         self.client_addr = client_addr
-        # connected: bool
-        # channel: str
+        self.connected: bool
+        self.channel_member: str
 
     def client_login(self, client_socket) -> str:
         self.client_socket.send("[SERVER]: Please enter a username to login to the server:".encode(FORMAT))
@@ -124,26 +123,32 @@ class Client:
                     continue
                 
                 if channel_command == "create":
-                    Channel(channel_name)
-                    Channel.channel_name = channel_name
-                    Channel.owner = self.username
-                    channel_list[Channel.channel_name] = Channel.owner
+                    new_channel = Channel(channel_name)
+                    new_channel.channel_name = channel_name
+                    new_channel.owner = self.username
+                    channel_list[new_channel.channel_name] = new_channel.owner
+                    new_channel.public = False
 
-                    print(f"{Channel.channel_name} {Channel.owner}")
-                    self.client_socket.send(f"[SERVER]: Private Channel named {channel_name} has been created!".encode(FORMAT))
+                    print(f"{new_channel.channel_name} {new_channel.owner}")
+                    self.client_socket.send(f"[SERVER]: Private Channel named '{new_channel.channel_name}' has been created!".encode(FORMAT))
+
                 elif channel_command == "join":
                     Channel.channel_join(channel_name)
+
                 elif channel_command == "invite":
                     channel_user = data_split[3]
                     # TODO: invite the user to your channel if exists, if not, create channel if invite is accepted:
                     pass
+
                 elif channel_command == "quit":
                     # TODO: leave channel, if the user is last person in the channel, destroy the channel too:
                     pass
+
                 elif channel_command == "kick":
                     channel_user = data_split[3]
                     # TODO: kick the user if used by the owner of the channel:
                     pass
+
                 elif channel_command == "who":
                     if data_split[2] == "all":
                         key_id = 1
@@ -157,7 +162,7 @@ class Client:
                     
                     else:
                         self.client_socket.send(f"[SERVER]: Invalid command, correct usage: /channel who <channel-name> or <all> for all channels".encode(FORMAT))
-                    pass
+
                 elif channel_command == "send":
                     # TODO: send message to specified channel name:
                     pass
