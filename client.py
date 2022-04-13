@@ -1,7 +1,7 @@
 import socket, threading, sys
 
 HOST = "127.0.0.1"
-PORT = 12345
+PORT = 12344
 SIZE = 1024
 FORMAT = 'utf-8'
 
