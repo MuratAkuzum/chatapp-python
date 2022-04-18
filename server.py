@@ -1,12 +1,9 @@
-import socket, threading, pickle
+import socket, threading
 
 HOST = "127.0.0.1"
 PORT = 12344
 SIZE = 1024
 FORMAT = 'utf-8'
-
-
-
 
 class Channel:
     global channel_list_public 
@@ -21,14 +18,7 @@ class Channel:
 
     def channel_create(channel_name: str, username: str):
         new_channel = Channel(channel_name, username, True, username)
-
         channel_list_public[new_channel.channel_name] = new_channel.owner
-
-    def channel_join(channel_name:str, username: str):
-        if channel_name.public:
-            channel_name.members.append(username)
-            print(f"{channel_name.members}")
-
 
 class Client:
     global client_list
