@@ -1,22 +1,38 @@
-import socket, threading
+import socket, threading, pickle
 
 HOST = "127.0.0.1"
 PORT = 12344
 SIZE = 1024
 FORMAT = 'utf-8'
 
-client_list = {}
+
 
 
 class Channel:
-    channel_list = []
-    def __init__(self, channel_name: str, owner: str, public: bool):
+    global channel_list_public 
+    channel_list_public = dict()
+    # channel_list_private = list()
+    def __init__(self, channel_name: str, owner: str, public: bool, members: list()):
         # TODO: Add option to make it public or private after creation:
         self.channel_name = channel_name
         self.owner = owner
         self.public = public
+        self.members = members
+
+    def channel_create(channel_name: str, username: str):
+        new_channel = Channel(channel_name, username, True, username)
+
+        channel_list_public[new_channel.channel_name] = new_channel.owner
+
+    def channel_join(channel_name:str, username: str):
+        if channel_name.public:
+            channel_name.members.append(username)
+            print(f"{channel_name.members}")
+
 
 class Client:
+    global client_list
+    client_list = {}
     def __init__(self, client_socket, client_addr):
         self.username: str = ""
         self.client_socket = client_socket
@@ -47,7 +63,7 @@ class Client:
             print("Error while trying to log off the client!")
 
 
-    def handle_client(self, client_socket, client_addr) -> None:
+    def client_handle(self, client_socket, client_addr) -> None:
         self.username = self.client_login(self.client_socket)
         print(f"[{self.username}] connected with {self.client_socket.getpeername()[0]}!")
 
@@ -99,16 +115,11 @@ class Client:
                     continue
                 
                 if channel_command == "create":
-                    new_channel = Channel(channel_name, self.username, True)
-
-                    channel_list[new_channel.channel_name] = new_channel.owner
-
-                    self.client_socket.send(f"[SERVER]: Private Channel named '{Channel.channel_list[0].channel_name}' has been created!".encode(FORMAT))
+                    new_channel = Channel.channel_create(channel_name, self.username)
+                    self.client_socket.send(f"[SERVER]: Private Channel named '{channel_name}' has been created!".encode(FORMAT))
 
                 elif channel_command == "join":
                     # TODO: connect the user to the channel if not already a member, if it is public, if not blacklisted, recently kicked
-                    # self.client_socket.send(f"[SERVER]: {self.username} has entered the channel {channel_name.channel_name}.".encode(FORMAT))
-                    # self.client_socket.send(f"[SERVER]: Failed to join the channel '{channel_name.channel_name}! It either doesn't exist or not public.".encode(FORMAT))
                     pass
                 elif channel_command == "invite":
                     channel_user = data_split[3]
@@ -173,7 +184,7 @@ def main() -> None:
         client_socket, client_addr = server.accept()
         new_client = Client(client_socket, client_addr)
         print(new_client)
-        thread = threading.Thread(target=new_client.handle_client, args=(new_client.client_socket, new_client.client_addr), daemon=True)
+        thread = threading.Thread(target=new_client.client_handle, args=(new_client.client_socket, new_client.client_addr), daemon=True)
         thread.start()
         print(f"Current active connections: {threading.active_count() -1}")
 
@@ -182,13 +193,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
-
-# TODO: Add more commands for clients to use
-# TODO: Remove command log/history from the chat window after done
-# TODO: Add timestamps on messages
-# TODO: Add more details about the users: online, online since XX:XX, location
-# TODO: Add option to save the chat history locally
-# TODO: Feature to create chat groups between clients
-# TODO: Add option to file transfer
 
