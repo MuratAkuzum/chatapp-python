@@ -18,7 +18,13 @@ class Channel:
 
     def channel_create(channel_name: str, username: str):
         new_channel = Channel(channel_name, username, True, username)
+
         channel_list_public[new_channel.channel_name] = new_channel.owner
+
+    def channel_join(channel_name:str, username: str):
+        if channel_name.public:
+            channel_name.members.append(username)
+            print(f"{channel_name.members}")
 
 class Client:
     global client_list
@@ -51,7 +57,6 @@ class Client:
             self.client_socket.close()
         except:
             print("Error while trying to log off the client!")
-
 
     def client_handle(self, client_socket, client_addr) -> None:
         self.username = self.client_login(self.client_socket)
@@ -110,6 +115,12 @@ class Client:
 
                 elif channel_command == "join":
                     # TODO: connect the user to the channel if not already a member, if it is public, if not blacklisted, recently kicked
+                    if channel_name in channel_list_public.keys():
+                        new_channel.channel_join(channel_name, self.username)
+                        print(f"{new_channel.members}")
+
+                    # self.client_socket.send(f"[SERVER]: {self.username} has entered the channel {channel_name.channel_name}.".encode(FORMAT))
+                    # self.client_socket.send(f"[SERVER]: Failed to join the channel '{channel_name.channel_name}! It either doesn't exist or not public.".encode(FORMAT))
                     pass
                 elif channel_command == "invite":
                     channel_user = data_split[3]
